@@ -1,0 +1,29 @@
+<ng-container>
+    <nav>
+        <span style="padding: 5px;">
+            <a [routerLink]="'/home'" name='home'>home</a>
+        </span>
+        <span style="padding: 5px;">
+            <a [routerLink]="'/can-load'" name='CanLoad'>CanLoad</a>
+        </span>
+        <span style="padding: 5px;">
+            <a [routerLink]="'/can-activate'" name='CanActivate'>CanActivate</a>
+        </span>
+    </nav>
+</ng-container>
+
+@if(authService.isLoggedIn()){
+<ng-container>
+    <p>Hello! {{authService.user()?.email}}</p>
+    <div>
+        <button (click)="authService.logout()" name='loginOut'>Log out</button>
+    </div>
+</ng-container>
+
+} @else {
+<nav>
+    <span style="padding: 5px;">
+        <a [routerLink]="'/login'" name='login'>Login</a>
+    </span>
+</nav>
+}
