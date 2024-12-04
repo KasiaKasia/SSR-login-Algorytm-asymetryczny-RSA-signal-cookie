@@ -11,7 +11,7 @@ git clone https://github.com/KasiaKasia/Angular-v18-SSR.git
 
 - `npm i`
 - `npm run watch`
-- `npm run serve:ssr:invoice-generator`
+- `npm run serve:ssr:login-ssr-signals`
 
 3. Next, open a web browser and navigate to the following address: http://localhost:5000
 
@@ -62,10 +62,10 @@ Wyższe bezpieczeństwo w systemach rozproszonych.
 Klucz prywatny nie musi być udostępniany innym usługom.
 
 ## Róznice Symetryczny a Asymetryczny
-# Symetryczny
-Używa 1 klucza Używany zarówno do szyfrowania, jak i odszyfrowywania danych
+## Symetryczny
+Używa 1 klucza. Używany zarówno do szyfrowania, jak i odszyfrowywania danych
 ## Asymetryczny
-Używa 2 kulycz prywatnego (używany do odszyfrowywania danych i powinien być przechowywany na serwerze ) i publicznego (używany do szyfrowania danych i może być udostępniany publicznie)
+Używa 2 kluczy prywatnego (używany do odszyfrowywania danych i powinien być przechowywany na serwerze ) i publicznego (używany do szyfrowania danych i może być udostępniany publicznie).
 ## Asymetryczny to:
 
 - RSA Algorytm Rivesta-Shamira-Adlemana  
