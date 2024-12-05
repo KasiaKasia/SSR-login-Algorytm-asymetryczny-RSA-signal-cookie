@@ -14,7 +14,7 @@ export const routes: Routes = [{
 {
     path: 'can-load',
     loadChildren: () => import('./can-load/can-load.module').then(m => m.CanLoadModule),
-    canLoad: [canLoadGuard]
+  //  canLoad: [canLoadGuard]
 },
 {
     path: 'can-activate',

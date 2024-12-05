@@ -1,15 +1,17 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { CommonEngine } from '@angular/ssr';
 import express from 'express';
-const cookieParser = require('cookie-parser');
-
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import bootstrap from './src/main.server';
-const cors = require('cors');
+var cors = require('cors');
+var cookieParser = require('cookie-parser');
+var jwt = require('jsonwebtoken');
+var fs = require('fs');
+const publicKey = fs.readFileSync('./src/environments/public.key', 'utf8');
+const privateKey = fs.readFileSync('./src/environments/private.key', 'utf8');
 
-const jwt = require('jsonwebtoken');
-const fs = require('fs');
+
 // The Express app is exported so that it can be used by serverless Functions.
 export function app(): express.Express {
   const server = express();
@@ -36,14 +38,22 @@ export function app(): express.Express {
     maxAge: '1y'
   }));
   server.post('/api/login', (req, res) => {
+    let accessTokenDetails = {
+      iat: 0,
+      exp: 0
+    }
+    let refreshTokenDetails = {
+      iat: 0,
+      exp: 0
+    }
     const user = {
       email: req.body.email,
       password: req.body.password
     }
+
     if (user.email === 'a' && user.password === 'a') {
 
-      const privateKey = fs.readFileSync('./src/environments/private.key', 'utf8');
-      const accessPayload = {
+      const userDataPayload = {
         userId: 123,
         role: ['admin', 'ksiegowa'],
         permissions: ['read', 'create', 'delete', 'update'],
@@ -53,26 +63,23 @@ export function app(): express.Express {
       };
 
       // Podpisanie tokena z użyciem algorytmu RSA i klucza prywatnego
-      const accessToken = jwt.sign(accessPayload, privateKey, { algorithm: 'RS256', expiresIn: '7h' });
-
-      const refreshPayload = {
-        userId: 123
-      };
-
-      // Generowanie refresh_token
-      const refreshToken = jwt.sign(refreshPayload, privateKey, { algorithm: 'RS256', expiresIn: '7d' });
-
-      console.log('Access Token:', accessToken);
-      console.log('Refresh Token:', refreshToken);
-
-      const publicKey = fs.readFileSync('./src/environments/public.key', 'utf8');
-
+      const accessToken = jwt.sign(userDataPayload, privateKey, { algorithm: 'RS256', expiresIn: '1m' }); //  60 seconds = 1 minute
+      const refreshToken = jwt.sign(userDataPayload, privateKey, { algorithm: 'RS256', expiresIn: '2m' });
+       
       // Weryfikacja access_token
       jwt.verify(accessToken, publicKey, (err: any, decoded: any) => {
         if (err) {
           console.error('Access Token verification failed:', err);
         } else {
-          console.log('Decoded access token:', decoded);
+          accessTokenDetails.iat = decoded.iat;
+          accessTokenDetails.exp = decoded.exp;
+
+          res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: accessTokenDetails.exp
+          });
         }
       });
 
@@ -81,26 +88,22 @@ export function app(): express.Express {
         if (err) {
           console.error('Refresh Token verification failed:', err);
         } else {
-          console.log('Decoded refresh token:', decoded);
+          refreshTokenDetails.iat = decoded.iat;
+          refreshTokenDetails.exp = decoded.exp;
+
+          res.cookie('refreshToken', refreshToken, {
+            httpOnly: true, // niedostępne dla JS (ogranicza ataki XSS) Wskazuje przeglądarce, że ciasteczko nie może być dostępne przez JavaScript.
+            secure: false, // Zmień na true, jeśli używasz HTTPS. Ciasteczka powinny być przesyłane wyłącznie przez szyfrowane połączenia (HTTPS).
+            sameSite: 'strict', // przeglądarka dołączy ciasteczko jedynie do żądań pochodzących i kierowanych do tej samej strony, co strona, z której pochodzi ciasteczko.
+            maxAge: refreshTokenDetails.exp
+          });
         }
       });
 
-
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true, // niedostępne dla JS (ogranicza ataki XSS) Wskazuje przeglądarce, że ciasteczko nie może być dostępne przez JavaScript.
-        secure: false, // Zmień na true, jeśli używasz HTTPS. Ciasteczka powinny być przesyłane wyłącznie przez szyfrowane połączenia (HTTPS).
-        sameSite: 'strict', // przeglądarka dołączy ciasteczko jedynie do żądań pochodzących i kierowanych do tej samej strony, co strona, z której pochodzi ciasteczko.
-        maxAge: 1 * 60 * 1000 // 1 minuta
-      });
-      res.cookie('accessToken', accessToken, {
-        httpOnly: true, 
-        secure: false,
-        sameSite: 'strict', 
-        maxAge: 1 * 60 * 1000 
-      });
-
       const respons = {
-        user: accessPayload,
+        user: userDataPayload,
+        accessTokenDetails: accessTokenDetails,
+        refreshTokenDetails: refreshTokenDetails
       }
 
       return res.status(200).json({
@@ -126,62 +129,86 @@ export function app(): express.Express {
         respons: user
       });
     }
-
   });
 
 
   server.post(`/api/refresh-token`, (req: any, res: any) => {
-    const refreshToken = req.cookies.refreshToken;
 
-    // if (!refreshToken) {
-    //   return res.status(401).json({
-    //     success: false,
-    //     code: 401,
-    //     message: 'Refresh token missing.'
-    //   });
-    // }
+    const userDataPayload = {
+      userId: 123,
+      role: ['admin', 'ksiegowa'],
+      permissions: ['read', 'create', 'delete', 'update'],
+      firstName: 'Kasia',
+      lastName: 'Kowalska',
+      email: req.body.email,
+    };
 
-    const publicKey = fs.readFileSync('./src/environments/public.key', 'utf8');
-    const privateKey = fs.readFileSync('./src/environments/private.key', 'utf8');
-    console.log('000000000')
+    let accessTokenDetails = {
+      iat: 0,
+      exp: 0
+    }
+
+    let refreshTokenDetails = {
+      iat: 0,
+      exp: 0
+    }
+
+
+    const accessToken = jwt.sign(userDataPayload, privateKey, { algorithm: 'RS256', expiresIn: '1m' }); //  60 seconds = 1 minute
+    const refreshToken = jwt.sign(userDataPayload, privateKey, { algorithm: 'RS256', expiresIn: '2m' });
+
+    jwt.verify(accessToken, privateKey, (err: any, decoded: any) => {
+      if (err) {
+        console.error('Access Token verification failed:', err);
+        return res.status(403).json({
+          success: false,
+          code: 403,
+          message: 'Invalid access token.'
+        });
+      } else {
+        accessTokenDetails.iat = decoded.iat;
+        accessTokenDetails.exp = decoded.exp;
+        res.cookie('accessToken', accessToken, {
+          httpOnly: true,
+          secure: false,
+          sameSite: 'strict',
+          maxAge: accessTokenDetails.exp
+        });
+      }
+    });
+
 
     // Weryfikacja refresh_token
-    jwt.verify(refreshToken, publicKey, (err: any, decoded: any) => {
-      // if (err) {
-      //   return res.status(403).json({
-      //     success: false,
-      //     code: 403,
-      //     message: err
-      //   });
-      // }
-console.log('111111111111111')
-      // Tworzenie nowego access_token
-      const accessToken = jwt.sign(
-        {
-          userId: decoded.userId,
-          role: ['admin', 'ksiegowa'],
-          permissions: ['read', 'create', 'delete', 'update'],
-        },
-        privateKey,
-        { algorithm: 'RS256', expiresIn: '7h' }
-      );
+    jwt.verify(refreshToken, privateKey, (err: any, decoded: any) => {
+      if (err) {
+        return res.status(403).json({
+          success: false,
+          code: 403,
+          message: err
+        });
+      }
 
-      console.log('22222222')
+      refreshTokenDetails.iat = decoded.iat;
+      refreshTokenDetails.exp = decoded.exp;
 
-      res.cookie('accessToken', accessToken, {
+      res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: false,
         sameSite: 'strict',
-        maxAge: 60 * 1000, // 1 minuta
+        maxAge: refreshTokenDetails.exp
       });
-   
+      const respons = {
+        user: userDataPayload,
+        accessTokenDetails: accessTokenDetails,
+        refreshTokenDetails: refreshTokenDetails
+      }
       return res.status(200).json({
         success: false,
         code: 200,
         message: 'Gererate accessToken and refreshToken',
+        respons: respons
       });
     });
-
   });
 
 
@@ -215,3 +242,16 @@ function run(): void {
 }
 
 run();
+
+function convertExpToDate(exp: number): string {
+  const date = new Date(exp * 1000); // Konwersja z sekund na milisekundy
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Miesiące są 0-indeksowane
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+  console.log(`${day}-${month}-${year} ${hours}:${minutes}:${seconds}:${milliseconds}`)
+  return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}:${milliseconds}`;
+}
