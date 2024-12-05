@@ -10,7 +10,14 @@ var jwt = require('jsonwebtoken');
 var fs = require('fs');
 const publicKey = fs.readFileSync('./src/environments/public.key', 'utf8');
 const privateKey = fs.readFileSync('./src/environments/private.key', 'utf8');
-
+let accessTokenDetails = {
+  iat: 0,
+  exp: 0
+}
+let refreshTokenDetails = {
+  iat: 0,
+  exp: 0
+}
 
 // The Express app is exported so that it can be used by serverless Functions.
 export function app(): express.Express {
@@ -38,14 +45,7 @@ export function app(): express.Express {
     maxAge: '1y'
   }));
   server.post('/api/login', (req, res) => {
-    let accessTokenDetails = {
-      iat: 0,
-      exp: 0
-    }
-    let refreshTokenDetails = {
-      iat: 0,
-      exp: 0
-    }
+    
     const user = {
       email: req.body.email,
       password: req.body.password
@@ -242,16 +242,3 @@ function run(): void {
 }
 
 run();
-
-function convertExpToDate(exp: number): string {
-  const date = new Date(exp * 1000); // Konwersja z sekund na milisekundy
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Miesiące są 0-indeksowane
-  const year = date.getFullYear();
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
-  const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
-  console.log(`${day}-${month}-${year} ${hours}:${minutes}:${seconds}:${milliseconds}`)
-  return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}:${milliseconds}`;
-}
