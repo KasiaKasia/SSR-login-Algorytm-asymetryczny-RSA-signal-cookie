@@ -83,9 +83,8 @@ Powyższe polecenia wygenerują dwa pliki  `private.key` i `public.key`
 ## Cookie
 Token dostępu (accessToken) i token odświeżania (refreshToken) moim zdaniem powinien być przechowywane w ciasteczkach. ponieważ opcja 'httpOnly' podczas tworzenia ciasteczka ustawiona na 'true' uniemożliwia odczytanie zawartości ciasteczka z poziomu JavaScript (document.cookie).
 Ja przekazuje na front-end właściwości:
-    ```
-    // iat? Kiedy token został utworzony (czas rozpoczęcia jego ważności).
-    readonly iat?: number | null;
-    // exp?: Kiedy token wygasa (czas zakończenia jego ważności).
-    readonly exp?: number | null; 
-    ```
+    `// iat? Kiedy token został utworzony (czas rozpoczęcia jego ważności).`
+    `readonly iat?: number | null;`
+    `// exp?: Kiedy token wygasa (czas zakończenia jego ważności).`
+    `readonly exp?: number | null; `
+    
