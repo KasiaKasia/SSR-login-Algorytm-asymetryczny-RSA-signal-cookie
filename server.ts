@@ -141,18 +141,7 @@ export function app(): express.Express {
       firstName: 'Kasia',
       lastName: 'Kowalska',
       email: req.body.email,
-    };
-
-    let accessTokenDetails = {
-      iat: 0,
-      exp: 0
-    }
-
-    let refreshTokenDetails = {
-      iat: 0,
-      exp: 0
-    }
-
+    };   
 
     const accessToken = jwt.sign(userDataPayload, privateKey, { algorithm: 'RS256', expiresIn: '1m' }); //  60 seconds = 1 minute
     const refreshToken = jwt.sign(userDataPayload, privateKey, { algorithm: 'RS256', expiresIn: '2m' });

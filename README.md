@@ -5,7 +5,7 @@
 
 1. Clone the repository:
 
-git clone https://github.com/KasiaKasia/Angular-v18-SSR.git
+git clone https://github.com/KasiaKasia/SSR-login-Algorytm-asymetryczny-RSA-signal-cookie.git
 
 2. In the project directory, run the following commands:
 
@@ -66,8 +66,8 @@ Klucz prywatny nie musi być udostępniany innym usługom.
 Używa 1 klucza. Używany zarówno do szyfrowania, jak i odszyfrowywania danych
 ## Asymetryczny
 Używa 2 kluczy prywatnego (używany do odszyfrowywania danych i powinien być przechowywany na serwerze ) i publicznego (używany do szyfrowania danych i może być udostępniany publicznie).
-## Asymetryczny to:
 
+## Asymetryczny to:
 - RSA Algorytm Rivesta-Shamira-Adlemana  
 - ECC Elliptic Curve Cryptography 
 
@@ -79,3 +79,13 @@ openssl rsa -pubout -in private.key -out public.key
 
 ```
 Powyższe polecenia wygenerują dwa pliki  `private.key` i `public.key`
+
+## Cookie
+Token dostępu (accessToken) i token odświeżania (refreshToken) moim zdaniem powinien być przechowywane w ciasteczkach. ponieważ opcja 'httpOnly' podczas tworzenia ciasteczka ustawiona na 'true' uniemożliwia odczytanie zawartości ciasteczka z poziomu JavaScript (document.cookie).
+Ja przekazuje na front-end właściwości:
+    ```
+    // iat? Kiedy token został utworzony (czas rozpoczęcia jego ważności).
+    readonly iat?: number | null;
+    // exp?: Kiedy token wygasa (czas zakończenia jego ważności).
+    readonly exp?: number | null; 
+    ```
