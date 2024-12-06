@@ -81,14 +81,15 @@ openssl rsa -pubout -in private.key -out public.key
 Powyższe polecenia wygenerują dwa pliki  `private.key` i `public.key`
 
 ## Cookie
-Token dostępu (accessToken) i token odświeżania (refreshToken) moim zdaniem powinien być przechowywane w ciasteczkach. ponieważ opcja 'httpOnly' podczas tworzenia ciasteczka ustawiona na 'true' uniemożliwia odczytanie zawartości ciasteczka z poziomu JavaScript (document.cookie).
-Ja przekazuje na front-end właściwości:
+Token dostępu (accessToken) i token odświeżania (refreshToken) moim zdaniem powinien być przechowywane w ciasteczkach ponieważ opcja `httpOnly` podczas tworzenia ciasteczka ustawiona na `true` uniemożliwia odczytanie zawartości ciasteczka z poziomu JavaScript (`document.cookie`).
+Ja przekazuje na front-end właściwości na podstawie, których wywołuje metodę odświeżania tokenów:
 
-`// iat? Kiedy token został utworzony (czas rozpoczęcia jego ważności).`
+```
+// iat? Kiedy token został utworzony (czas rozpoczęcia jego ważności)
+readonly iat?: number | null;
 
-`readonly iat?: number | null;`
-
-`// exp?: Kiedy token wygasa (czas zakończenia jego ważności).`
-
-`readonly exp?: number | null; `
+// exp?: Kiedy token wygasa (czas zakończenia jego ważności)
+readonly exp?: number | null; 
+```
+ 
     
